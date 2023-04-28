@@ -1,0 +1,9 @@
+requests
+os
+time
+xml.etree.ElementTree
+json
+logging
+sqlite3
+telegram.ext
+telegram
