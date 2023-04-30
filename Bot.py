@@ -11,7 +11,7 @@ cursor = con.cursor()
 kinopoisk = KP(token='b4f90fec-97ab-42a7-9e36-38b77b977032')
 last_film = None
 start_reply_keyboard = [['🔦Найти фильм'],
-                        ['📼Мои фильмы'], ['🕹Помощь']]
+                        ['📼Мои фильмы'], ['🏆Топ Кинопоиска'], ['🕹Помощь']]
 my_films_reply_keyboard = [['💎Любимые'], ['⏱Хочу посмотреть'], ['🧰Посмотренные'], ['⬅Назад']]
 my_films__markup = ReplyKeyboardMarkup(my_films_reply_keyboard, one_time_keyboard=False)
 start_markup = ReplyKeyboardMarkup(start_reply_keyboard, one_time_keyboard=False)
@@ -30,8 +30,19 @@ async def search_films(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             "Ваши фильмы:",
             reply_markup=my_films__markup
         )
+    elif update.message.text == '🏆Топ Кинопоиска':
+        keyboard = [
+            [
+                InlineKeyboardButton("🌗5", callback_data="5"),
+                InlineKeyboardButton("🌖10", callback_data="10"),
+            ],
+            [InlineKeyboardButton("🌕20", callback_data="20")],
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text(f'Cколько фильмов показать?', reply_markup=reply_markup)
     elif update.message.text == '🕹Помощь':
-        await update.message.reply_text('Я тебе что помогатор чтоле???')
+        await update.message.reply_text('Вы можете написать название фильма для его поиска,'
+                                        ' а затем сохранить его в одну из групп вкладки 📼Мои фильмы')
     elif update.message.text == '⬅Назад':
         await update.message.reply_text('-Вы вернулись в главное меню-',
                                         reply_markup=start_markup)
@@ -144,6 +155,16 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             print(query.message.text)
             await query.message.reply_text('Извините, по вашему запросу ничего не найдено🙁',
                                            reply_markup=start_markup)
+    elif query.data in ('5', '10', '20'):
+        kolvo = int(query.data)
+        top500 = kinopoisk.top500()[:kolvo]
+        soob = ''
+        kf = 1
+        for item in top500:
+            soob += f"{kf}){item.ru_name}, {item.year}\n"
+            kf += 1
+        await query.edit_message_text(text="***Выполнено***")
+        await query.message.reply_text(soob, reply_markup=start_markup)
     elif query.data in ('дел', 'сом'):
         konverter = {'💎': 'LUBIMIE', '⏱': 'HOCH_POSMOTRET', '🧰': 'PROSMOTRENIE'}
         naz_f = query.message.text[2:-3]
